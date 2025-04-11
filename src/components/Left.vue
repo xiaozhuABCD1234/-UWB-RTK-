@@ -1,0 +1,246 @@
+<template>
+  <div class="dashboard-container">
+    <!-- <div class="coordinates-display">
+      <div class="coordinate-item">
+        <span class="label">X 坐标:</span>
+        <span class="value">{{ currentPosition.x }}</span>
+      </div>
+      <div class="coordinate-item">
+        <span class="label">Y 坐标:</span>
+        <span class="value">{{ currentPosition.y }}</span>
+      </div>
+      <div class="coordinate-item" v-if="currentArea !== null">
+        <span class="label">当前区域:</span>
+        <span class="value highlighted">{{ currentArea }}</span>
+      </div>
+    </div> -->
+    <div class="progress-cards">
+      <div class="progress-card">
+        <el-progress type="dashboard" :percentage="percentage1" :color="colors" class="progress" />
+        <div class="progress-label">数字虚拟教学仿真硬件平台</div>
+      </div>
+
+      <div class="progress-card">
+        <el-progress type="dashboard" :percentage="percentage2" :color="colors" class="progress" />
+        <div class="progress-label">RTK</div>
+      </div>
+
+      <div class="progress-card">
+        <el-progress type="dashboard" :percentage="percentage3" :color="colors" class="progress" />
+        <div class="progress-label">UWB</div>
+      </div>
+
+      <div class="progress-card">
+        <el-progress type="dashboard" :percentage="percentage4" :color="colors" class="progress" />
+        <div class="progress-label">IMU</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
+import mqtt from 'mqtt'
+
+// 坐标数据
+const currentPosition = reactive({
+  x: 0,
+  y: 0
+})
+
+// 当前区域状态
+const currentArea = ref<number | null>(null)
+const perArea = ref<number | null>(null)
+// 区域配置
+const areas = {
+  1: { detection: { x1: 85, y1: 195, x2: 200, y2: 400 } },
+  2: { detection: { x1: 320, y1: 190, x2: 425, y2: 295 } }
+}
+
+// 进度条值
+const percentage1 = ref(0)
+const percentage2 = ref(0)
+const percentage3 = ref(0)
+const percentage4 = ref(0)
+
+
+
+// 进度条颜色配置
+const colors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 40 },
+  { color: '#5cb87a', percentage: 60 },
+  { color: '#1989fa', percentage: 80 },
+  { color: '#6f7ad3', percentage: 100 },
+]
+
+// MQTT客户端
+const client = mqtt.connect('ws://139.224.66.191:8083/mqtt', {
+  clean: true,
+  connectTimeout: 4000,
+  clientId: 'emqx_test_left'
+})
+
+// 区域检测函数
+const checkCurrentArea = (x: number, y: number): number | null => {
+  for (const [areaId, config] of Object.entries(areas)) {
+    const { x1, y1, x2, y2 } = config.detection
+    if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+      return parseInt(areaId)
+    }
+  }
+
+  return null
+}
+
+// 随机数生成辅助函数
+const getRandomInRange = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+// 初始化MQTT连接
+onMounted(() => {
+  client.on('connect', () => {
+    client.subscribe('location/sensors/#')
+  })
+
+  // 消息处理
+  client.on('message', (topic, message) => {
+    try {
+      const data = JSON.parse(message.toString())
+      currentPosition.x = data.x
+      currentPosition.y = data.y
+
+      perArea.value = currentArea.value
+      currentArea.value = checkCurrentArea(Number(data.x), Number(data.y))
+
+    } catch (error) {
+      console.error('MQTT消息处理错误:', error)
+    }
+  })
+
+  // 进度条动画
+  const animateProgress = () => {
+    percentage1.value = getRandomInRange(40, 50)
+  }
+
+  // RTK进度条逻辑
+  const updateRtkProgress = () => {
+    percentage3.value = currentArea.value !== null
+      ? getRandomInRange(80, 100)  // 区域内: 80-100
+      : getRandomInRange(0, 10)    // 区域外: 0-10
+  }
+
+  // UWB进度条逻辑
+  const updateUwbProgress = () => {
+    percentage2.value = currentArea.value !== null
+      ? getRandomInRange(0, 40)    // 区域内: 0-10
+      : getRandomInRange(80, 100)  // 区域外: 80-100
+  }
+
+  // LORA进度条逻辑
+  const updateLoraProgress = () => {
+    percentage4.value = currentArea.value !== perArea.value
+      ? getRandomInRange(80, 100)
+      : getRandomInRange(0, 10)
+  }
+
+  // 设置动画间隔
+  setInterval(animateProgress, 100)
+  setInterval(updateRtkProgress, 200)
+  setInterval(updateUwbProgress, 200)
+  setInterval(updateLoraProgress, 200)
+})
+
+// 组件卸载时清理资源
+onUnmounted(() => {
+  client.end()
+})
+</script>
+
+<style scoped>
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f5f7fa;
+}
+
+/* .coordinates-display {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+} */
+
+/* .coordinate-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+} */
+
+/* .coordinate-item:last-child {
+  border-bottom: none;
+} */
+
+.label {
+  font-weight: 500;
+  color: #606266;
+}
+
+.value {
+  font-weight: 600;
+  color: #303133;
+}
+
+.highlighted {
+  color: #409eff;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.progress-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.progress-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 15px;
+}
+
+.progress-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  text-align: center;
+}
+</style>
