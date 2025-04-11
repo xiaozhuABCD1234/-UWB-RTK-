@@ -32,7 +32,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url(../assets/map4.jpg);
+  background-image: url(../assets/map5.jpg);
   background-size: cover;
   background-position: center;
 }
@@ -115,10 +115,10 @@ type AreaConfig = {
 
 const areas: Record<number, AreaConfig> = {
   1: {
-    detection: { x1: 80, y1: 195, x2: 200, y2: 400 },
+    detection: { x1: 65, y1: 185, x2: 210, y2: 410 },
   },
   2: {
-    detection: { x1: 320, y1: 190, x2: 425, y2: 295 },
+    detection: { x1: 310, y1: 180, x2: 435, y2: 305 },
   }
 };
 
@@ -226,8 +226,8 @@ function drawTrajectory() {
 }
 
 onMounted(() => {
-  const initialX = 100;
-  const initialY = 100;
+  const initialX = 0;
+  const initialY = 0;
 
   currentPosition.x = initialX;
   currentPosition.y = initialY;

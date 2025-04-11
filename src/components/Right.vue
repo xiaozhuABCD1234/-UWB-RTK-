@@ -63,13 +63,21 @@
     </svg>
   </div>
   <div>
-    <el-button type="success">开启数字孪生</el-button>
+    <el-button type="success" @click="playVideo">开启数字孪生</el-button>
+    <el-button type="danger" v-if="showVideo" @click="closeVideo">关闭数字孪生</el-button>
+  </div>
+  <div v-if="showVideo">
+    <video ref="videoPlayer" width="600" muted playsinline>
+      <source :src="videoSrc" type="video/mp4">
+      您的浏览器不支持视频播放。
+    </video>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import mqtt from 'mqtt'
+import videoSrc from '@/assets/video.mp4' // 确保路径正确
 
 // 坐标系参数
 const viewBoxWidth = 800
@@ -80,6 +88,10 @@ const axisTicks = [0, 20, 40, 60, 80, 100]
 // 坐标数据
 const points = ref<{x: number; y: number}[]>([])
 const currentPoint = ref<{x: number; y: number} | null>(null)
+
+// 视频相关
+const showVideo = ref(false)
+const videoPlayer = ref<HTMLVideoElement | null>(null)
 
 // MQTT客户端
 const client = mqtt.connect('ws://139.224.66.191:8083/mqtt', {
@@ -102,13 +114,10 @@ const trajectoryPath = computed(() => {
 
 // 处理坐标数据
 const handleNewPoint = (x: number, y: number) => {
-  // 限制坐标范围
-  const clampedX = Math.max(0, Math.min(x, 800))
-  const clampedY = Math.max(0, Math.min(y, 600))
+  const clampedX = Math.max(0, Math.min(x, viewBoxWidth))
+  const clampedY = Math.max(0, Math.min(y, viewBoxHeight))
 
   currentPoint.value = { x: clampedX, y: clampedY }
-
-  // 添加新点并限制数量
   points.value = [
     ...points.value.slice(-maxPoints + 1),
     { x: clampedX, y: clampedY }
@@ -126,6 +135,30 @@ client.on('message', (topic, message) => {
     console.error('消息解析失败:', error)
   }
 })
+
+// 播放视频
+const playVideo = async () => {
+  showVideo.value = true
+  await nextTick()
+  if (videoPlayer.value) {
+    try {
+      videoPlayer.value.currentTime = 0 // 重置播放位置
+      await videoPlayer.value.play()
+    } catch (error) {
+      console.error('视频播放失败:', error)
+      // 可以在这里添加用户交互后重试的逻辑
+    }
+  }
+}
+
+// 关闭视频
+const closeVideo = () => {
+  if (videoPlayer.value) {
+    videoPlayer.value.pause()
+    videoPlayer.value.currentTime = 0
+  }
+  showVideo.value = false
+}
 
 onMounted(() => {
   client.on('connect', () => {

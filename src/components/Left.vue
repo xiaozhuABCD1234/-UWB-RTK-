@@ -53,8 +53,8 @@ const currentArea = ref<number | null>(null)
 const perArea = ref<number | null>(null)
 // 区域配置
 const areas = {
-  1: { detection: { x1: 85, y1: 195, x2: 200, y2: 400 } },
-  2: { detection: { x1: 320, y1: 190, x2: 425, y2: 295 } }
+  1: { detection: { x1: 65, y1: 185, x2: 215, y2: 410 } },
+  2: { detection: { x1: 310, y1: 180, x2: 435, y2: 305 } }
 }
 
 // 进度条值
@@ -92,6 +92,25 @@ const checkCurrentArea = (x: number, y: number): number | null => {
 
   return null
 }
+
+const checkWall = (x: number, y: number): { areaId: number | null; isWall: boolean } => {
+  for (const [areaId, config] of Object.entries(areas)) {
+    const { x1, y1, x2, y2 } = config.detection;
+
+    // 检测是否靠近区域的边界（墙壁）
+    const isNearLeftWall = x <= x1 + 4 && x >= x1 - 4 && y >= y1 && y <= y2;
+    const isNearRightWall = x <= x2 + 3 && x >= x2 - 3 && y >= y1 && y <= y2;
+    const isNearTopWall = y <= y1 + 3 && y >= y1 - 3 && x >= x1 && x <= x2;
+    const isNearBottomWall = y <= y2 + 3 && y >= y2 - 3 && x >= x1 && x <= x2;
+
+    if (isNearLeftWall || isNearRightWall || isNearTopWall || isNearBottomWall) {
+      return { areaId: parseInt(areaId), isWall: true };
+    }
+  }
+
+  return { areaId: null, isWall: false };
+};
+
 
 // 随机数生成辅助函数
 const getRandomInRange = (min: number, max: number): number => {
@@ -140,16 +159,19 @@ onMounted(() => {
 
   // LORA进度条逻辑
   const updateLoraProgress = () => {
-    percentage4.value = currentArea.value !== perArea.value
-      ? getRandomInRange(80, 100)
-      : getRandomInRange(0, 10)
-  }
+    const { isWall } = checkWall(currentPosition.x, currentPosition.y);
+
+    // 根据是否靠近墙壁来设置 percentage4.value
+    percentage4.value = isWall
+      ? getRandomInRange(80, 100) // 靠近墙壁时返回 80-100 的随机值
+      : getRandomInRange(0, 10); // 不靠近墙壁时返回 0-10 的随机值
+  };
 
   // 设置动画间隔
   setInterval(animateProgress, 100)
-  setInterval(updateRtkProgress, 200)
-  setInterval(updateUwbProgress, 200)
-  setInterval(updateLoraProgress, 200)
+  setInterval(updateRtkProgress, 100)
+  setInterval(updateUwbProgress, 100)
+  setInterval(updateLoraProgress, 100)
 })
 
 // 组件卸载时清理资源

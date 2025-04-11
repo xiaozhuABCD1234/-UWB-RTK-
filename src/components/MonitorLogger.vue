@@ -30,6 +30,8 @@ interface LogEntry {
   height: number
 }
 
+const wanrNunber = ref(0)
+
 // 状态管理
 const statusMap = {
   connecting: { color: '#ffc107', text: '连接中...' },
@@ -184,15 +186,48 @@ onMounted(() => {
   client.on('message', (topic, message) => {
     try {
       const payload = JSON.parse(message.toString())
-      console.log(payload.x)
-      let cx = (payload.x*12.3).toFixed(2)
-      let cy = (payload.y*12.3).toFixed(2)
-      addLog('info', `主题 ${topic}: x:${cx},y:${cy}`)
+      const currentX = payload.x
+      const currentY = payload.y
+
+      // 危险点定义
+      const dangerPoints = [
+        { x: 130, y: 210 },
+        { x: 130, y: 190 },
+        { x: 150, y: 190 },
+      ]
+
+      // 检查是否在危险区域（±3范围内）
+      const isInDanger = dangerPoints.some(point =>
+        Math.abs(currentX - point.x) <= 3 &&
+        Math.abs(currentY - point.y) <= 3
+      )
+
+      let cx = (currentX * 12.3).toFixed(2)
+      let cy = (currentY * 12.3).toFixed(2)
+
+      // 根据位置状态记录不同日志
+      if (isInDanger) {
+        addLog('error', `主题 ${topic}: x:${cx},y:${cy} - 危险位置！`)
+        wanrNunber.value += 1
+        if (wanrNunber.value == 1) {
+          alert("靠近危险位置！\n开启数字孪生")
+        }
+      } else {
+        if (currentX > 178 && currentX < 182) {
+          A.value += 1
+          if (A.value == 1) {
+            alert("离开危险位置！\n关闭数字孪生")
+          }
+
+        }
+        addLog('info', `主题 ${topic}: x:${cx},y:${cy}`)
+      }
+
     } catch (error) {
       addLog('error', `消息解析失败: ${(error as Error).message}`)
     }
   })
-
+  const A = ref(0)
   client.on('error', (err) => {
     updateStatus('error')
     addLog('error', `MQTT 错误: ${err.message}`)
