@@ -63,7 +63,7 @@
     </svg>
   </div>
   <div>
-    <el-button type="success" @click="playVideo">开启数字孪生</el-button>
+    <el-button type="primary" @click="playVideo">开启数字孪生</el-button>
     <el-button type="danger" v-if="showVideo" @click="closeVideo">关闭数字孪生</el-button>
   </div>
   <div v-if="showVideo">
@@ -71,6 +71,7 @@
       <source :src="videoSrc" type="video/mp4">
       您的浏览器不支持视频播放。
     </video>
+    <!-- <div class="fake_v"></div> -->
   </div>
 </template>
 
