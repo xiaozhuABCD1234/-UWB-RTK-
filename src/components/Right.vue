@@ -176,8 +176,8 @@ onUnmounted(() => {
 .chart-container {
   width: 100%;
   height: 600px;
-  border: 1px solid #eee;
-  background: #fafafa;
+  border: 1px solid #444444; /* 深色边框 */
+  background: #2a2a2a; /* 深色背景 */
 }
 
 .chart {
@@ -186,24 +186,25 @@ onUnmounted(() => {
 }
 
 .grid path {
-  stroke: #e0e0e0;
+  stroke: #444444; /* 深色网格线 */
   stroke-width: 0.5;
   shape-rendering: crispEdges;
 }
 
 .axis path {
-  stroke: #757575;
+  stroke: #666666; /* 深色轴线 */
   stroke-width: 1.5;
   shape-rendering: crispEdges;
 }
 
 .axis text {
   font: 10px sans-serif;
-  fill: #616161;
+  fill: #e0e0e0; /* 浅色文字，确保在深色背景下可读 */
 }
 
 .trajectory {
   stroke-linecap: round;
   stroke-linejoin: round;
+  stroke: #8888ff; /* 轨迹颜色，亮色以便在深色背景下可见 */
 }
 </style>

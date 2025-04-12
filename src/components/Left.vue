@@ -186,55 +186,8 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 20px;
   padding: 20px;
-  background-color: #f5f7fa;
-}
-
-/* .coordinates-display {
-  background-color: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-} */
-
-/* .coordinate-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
-} */
-
-/* .coordinate-item:last-child {
-  border-bottom: none;
-} */
-
-.label {
-  font-weight: 500;
-  color: #606266;
-}
-
-.value {
-  font-weight: 600;
-  color: #303133;
-}
-
-.highlighted {
-  color: #409eff;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-
-  100% {
-    opacity: 1;
-  }
+  background-color: #1a1a1a; /* 修改为深色背景 */
+  min-height: 100vh;
 }
 
 .progress-cards {
@@ -244,25 +197,34 @@ onUnmounted(() => {
 }
 
 .progress-card {
-  background-color: white;
+  background-color: #2d2d2d; /* 卡片深灰色背景 */
   border-radius: 10px;
   padding: 15px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3); /* 加深阴影 */
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: transform 0.3s ease;
 }
 
-.progress {
-  width: 150px;
-  height: 150px;
-  margin-bottom: 15px;
+.progress-card:hover {
+  transform: translateY(-5px);
 }
 
 .progress-label {
   font-size: 16px;
   font-weight: 500;
-  color: #303133;
+  color: #ffffff; /* 白色文字 */
   text-align: center;
+}
+
+/* 覆盖Element UI组件样式 */
+:deep(.el-progress__text) {
+  color: #ffffff !important;
+  font-size: 20px !important;
+}
+
+:deep(.el-progress-circle__track) {
+  stroke: #3d3d3d; /* 进度条轨道颜色 */
 }
 </style>
